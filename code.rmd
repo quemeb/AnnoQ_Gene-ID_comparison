@@ -1,0 +1,110 @@
+---
+title: "Comparison Alg"
+output: html_document
+---
+
+```{r file input}
+
+ifile <- file.choose()
+cdata <- read.csv(ifile)  
+
+library(tidyverse)
+
+```
+
+```{r column selection}
+
+AN_ID_1 <- select(cdata, ANNOVAR_ensembl_Gene_ID) #Gene ID should be here
+AN_ID_2 <- select(cdata, ANNOVAR_ensembl_Closest_gene.intergenic_only.)  # Alternative place for gene ID 
+
+SN_ID_1 <- select(cdata, SnpEff_ensembl_Gene_ID)
+
+
+```
+
+```{r }
+size = length(AN_ID_1$ANNOVAR_ensembl_Gene_ID)
+
+z=list()
+
+# Finding Gene ID for ANNOVAR results
+for(i in 1:size){
+  if(ANNOVAR_ensembl_Gene_ID[i] == "."){
+    z <- append(z, ANNOVAR_ensembl_Closest_gene.intergenic_only.[i])
+  }else{
+    z <- append(z, ANNOVAR_ensembl_Gene_ID[i])
+  }
+}
+
+```
+
+
+```{r, functions}
+
+no_repeats <- function(total,horizon,app){
+  temp <- list()
+  for(i in 1:total){
+    for(a in 1:horizon){
+      if(app[i,a] == ""){
+        break
+     }else{
+        x <- c(x, app[i,a])
+      }
+    }
+    x <- unique(x)
+    x <- str_c(x, collapse = " ")
+    temp <- append(temp, x)
+    x <- NULL
+    }
+  return(temp)
+}
+
+differences <- function(size, soft_1, soft_2){
+  temp <- list()
+  for(i in 1:size){
+    x <- setdiff(soft_1[i,], soft_2[i,])
+    x <- str_c(x, collapse = " ")
+    temp <- append(temp, x)
+    x <- NULL
+  }
+  return(temp)
+}
+
+```
+
+```{r }
+
+AN_ID <- str_extract_all(z, "ENSG...........", simplify = TRUE) # creates a matrix for each ID
+SN_ID <- str_extract_all(SnpEff_ensembl_Gene_ID, "ENSG...........", simplify = TRUE) # matrix for IDs
+
+AN_l <- length(AN_ID[1,]) # length of IDs
+SN_l <- length(SN_ID[1,])
+
+# Getting rid of repeats in SNPEFF
+SN_clean <- list()
+SN_clean <- no_repeats(size,SN_l,SN_ID)
+SN_final <- str_extract_all(SN_clean, "ENSG...........", simplify = TRUE)
+
+# Getting rid of repeats in ANNOVAR
+AN_clean <- list()
+AN_clean <- no_repeats(size,AN_l,AN_ID)
+AN_final <- str_extract_all(AN_clean, "ENSG...........", simplify = TRUE)
+
+# Compare for differences
+dif <- list()
+dif <- differences(size,SN_final, AN_final)
+
+
+
+display <- data.frame(AN = character(size), SN=character(size), Dif=character(size))
+
+display$AN <- AN_clean
+display$SN <- SN_clean
+display$Dif <- dif
+
+#results of the differences only, no index
+results <- list(size)
+result <- setdiff(display$AN, display$SN)
+
+
+```
