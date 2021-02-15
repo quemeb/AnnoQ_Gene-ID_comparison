@@ -29,10 +29,10 @@ z=list()
 
 # Finding Gene ID for ANNOVAR results
 for(i in 1:size){
-  if(ANNOVAR_ensembl_Gene_ID[i] == "."){
-    z <- append(z, ANNOVAR_ensembl_Closest_gene.intergenic_only.[i])
+  if(AN_ID_1$ANNOVAR_ensembl_Gene_ID[i] == "."){
+    z <- append(z,AN_ID_2$ANNOVAR_ensembl_Closest_gene.intergenic_only.[i])
   }else{
-    z <- append(z, ANNOVAR_ensembl_Gene_ID[i])
+    z <- append(z,AN_ID_1$ANNOVAR_ensembl_Gene_ID[i])
   }
 }
 
@@ -42,6 +42,7 @@ for(i in 1:size){
 ```{r, functions}
 
 no_repeats <- function(total,horizon,app){
+  x <- NULL
   temp <- list()
   for(i in 1:total){
     for(a in 1:horizon){
@@ -60,6 +61,7 @@ no_repeats <- function(total,horizon,app){
 }
 
 differences <- function(size, soft_1, soft_2){
+  x <- NULL
   temp <- list()
   for(i in 1:size){
     x <- setdiff(soft_1[i,], soft_2[i,])
@@ -75,7 +77,7 @@ differences <- function(size, soft_1, soft_2){
 ```{r }
 
 AN_ID <- str_extract_all(z, "ENSG...........", simplify = TRUE) # creates a matrix for each ID
-SN_ID <- str_extract_all(SnpEff_ensembl_Gene_ID, "ENSG...........", simplify = TRUE) # matrix for IDs
+SN_ID <- str_extract_all(SN_ID_1$SnpEff_ensembl_Gene_ID, "ENSG...........", simplify = TRUE) # matrix for IDs
 
 AN_l <- length(AN_ID[1,]) # length of IDs
 SN_l <- length(SN_ID[1,])
@@ -94,8 +96,7 @@ AN_final <- str_extract_all(AN_clean, "ENSG...........", simplify = TRUE)
 dif <- list()
 dif <- differences(size,SN_final, AN_final)
 
-
-
+# Display comparison
 display <- data.frame(AN = character(size), SN=character(size), Dif=character(size))
 
 display$AN <- AN_clean
